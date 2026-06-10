@@ -1,0 +1,9 @@
+build/
+*.bin
+*.elf
+*.map
+*.swp
+.DS_Store
+
+# Local-only SD-card config — never commit real LAN IPs / tokens.
+*.private.txt

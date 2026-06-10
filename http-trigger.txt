@@ -1,0 +1,144 @@
+# HTTP Trigger — showcase config for screenshots.
+# Seven screens, each illustrating one type of HTTP request you'd typically
+# fire from a tiny physical remote. WiFi + INFO_REFRESH_M live in setup.txt.
+
+# ───────────────────────────────────────────────────────────────────────────
+# 1) Living-room lights — three preset scenes (multi-button + JSON body).
+[screen]
+type    = button
+label   = Living Room
+method  = POST
+header  = Authorization: Bearer YOUR_HA_TOKEN
+header2 = Content-Type: application/json
+
+  [button]
+  label = Off
+  url   = https://home.example.com/api/services/light/turn_off
+  body  = {"entity_id":"light.living_room"}
+
+  [button]
+  label = TV
+  url   = https://home.example.com/api/services/scene/turn_on
+  body  = {"entity_id":"scene.living_tv"}
+
+  [button]
+  label = Movie
+  url   = https://home.example.com/api/services/scene/turn_on
+  body  = {"entity_id":"scene.living_movie"}
+
+# ───────────────────────────────────────────────────────────────────────────
+# 2) Thermostat — drag to set °C, sends after a 1-second debounce.
+#    {value} is substituted inside the JSON body (PUT + auth).
+[screen]
+type    = slider
+label   = Thermostat
+min     = 16
+max     = 26
+step    = 1
+unit    = C
+method  = PUT
+header  = Authorization: Bearer YOUR_TADO_TOKEN
+header2 = Content-Type: application/json
+url     = https://my.tado.com/api/v2/homes/12345/zones/1/overlay
+body    = {"setting":{"power":"ON","temperature":{"celsius":{value}}},"termination":{"type":"MANUAL"}}
+
+# ───────────────────────────────────────────────────────────────────────────
+# 3) Music transport — Sonos via node-sonos-http-api on a Raspberry Pi.
+#    Plain GET, no auth, action encoded in the URL path.
+[screen]
+type   = button
+label  = Music
+method = GET
+
+  [button]
+  label = Prev
+  url   = http://192.168.1.70:5005/Kitchen/previous
+
+  [button]
+  label = Play
+  url   = http://192.168.1.70:5005/Kitchen/playpause
+
+  [button]
+  label = Next
+  url   = http://192.168.1.70:5005/Kitchen/next
+
+# ───────────────────────────────────────────────────────────────────────────
+# 4) Bitcoin price — CoinGecko, public HTTPS, no auth, JSON path extraction.
+#    Refreshes automatically every INFO_REFRESH_M minutes (setup.txt).
+[screen]
+type  = display
+label = Bitcoin
+
+  [value]
+  label     = Now
+  url       = https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur
+  json_path = bitcoin.eur
+  unit      = EUR
+  decimals  = 0
+
+# ───────────────────────────────────────────────────────────────────────────
+# 5) Pushover — fire a notification to your phone with one tap.
+#    Single button, POST with form-encoded body containing app + user token.
+[screen]
+type   = button
+label  = Notify
+method = POST
+header = Content-Type: application/x-www-form-urlencoded
+
+  [button]
+  label = Done!
+  url   = https://api.pushover.net/1/messages.json
+  body  = token=YOUR_APP_TOKEN&user=YOUR_USER_KEY&message=Done
+
+# ───────────────────────────────────────────────────────────────────────────
+# 6) Next departures — three readings from a small Pi script that fronts
+#    the local transit API and returns countdowns in minutes.
+#    Tap the screen to refresh all three at once.
+[screen]
+type  = display
+label = Next Bus
+
+  [value]
+  label     = Line 13
+  url       = http://192.168.1.100:5000/transit?stop=home&line=13
+  json_path = next
+  unit      = min
+  decimals  = 0
+
+  [value]
+  label     = Line 6
+  url       = http://192.168.1.100:5000/transit?stop=home&line=6
+  json_path = next
+  unit      = min
+  decimals  = 0
+
+  [value]
+  label     = Subway
+  url       = http://192.168.1.100:5000/transit?stop=home&line=U4
+  json_path = next
+  unit      = min
+  decimals  = 0
+
+# ───────────────────────────────────────────────────────────────────────────
+# 7) GitHub repo stats — public HTTPS, no auth, JSON from the GitHub API.
+[screen]
+type  = display
+label = Repo
+
+  [value]
+  label     = Stars
+  url       = https://api.github.com/repos/espressif/arduino-esp32
+  json_path = stargazers_count
+  decimals  = 0
+
+  [value]
+  label     = Issues
+  url       = https://api.github.com/repos/espressif/arduino-esp32
+  json_path = open_issues_count
+  decimals  = 0
+
+  [value]
+  label     = Forks
+  url       = https://api.github.com/repos/espressif/arduino-esp32
+  json_path = forks_count
+  decimals  = 0

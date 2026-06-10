@@ -1,0 +1,23 @@
+# HTTP Trigger — global settings.
+# Screen layout (HTTP requests) lives in http-trigger.txt, in this same folder.
+
+# ── WiFi ────────────────────────────────────────────────────────────────────
+SSID      = your-wifi
+PASSWORD  = your-password
+# Optional fallbacks
+# SSID2     = guest-wifi
+# PASSWORD2 = guest-pass
+
+# ── Display ────────────────────────────────────────────────────────────────
+BRIGHTNESS = 180
+TIMEOUT    = 300       # idle seconds before auto-off; 0 = never
+
+# ── Refresh interval for display values (minutes, default 15) ──────────────
+INFO_REFRESH_M = 15
+
+# ── HTTPS certificate verification ─────────────────────────────────────────
+# Default: HTTPS requests verify the server cert against the embedded
+# Mozilla root CA bundle (CoinGecko, GitHub, HA Cloud, Tado, Pushover, … all
+# work out of the box). Only set this to true if your LAN endpoint presents
+# a self-signed cert and you'd rather skip verification.
+# HTTPS_INSECURE = false
