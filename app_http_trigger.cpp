@@ -1246,7 +1246,8 @@ static void drawDisplay(int idx) {
     }
 }
 
-// Hardware-button label on the right edge — just rotated text, no bg.
+// Hardware-button label on the right edge — rotated text over a black pill so
+// it stays readable when it hovers above other UI elements.
 static void drawHwButtonLabel(uint8_t button, const char *action) {
     int16_t len = (int16_t)strlen(action);
     if (len == 0) return;
@@ -1259,6 +1260,7 @@ static void drawHwButtonLabel(uint8_t button, const char *action) {
     int16_t btnY  = (button == 0) ? BOOT_BTN_Y_P : PWR_BTN_Y_P;
     int16_t px    = LCD_WIDTH - pillW - 4;
     int16_t py    = btnY - pillH / 2;
+    canvas->fillRoundRect(px, py, pillW, pillH, pillW / 2, 0x0000);  // black pill bg
     drawTextRot(canvas, px + padX, py + padY, action, HUD_PILL_TX, stride, pxSz);
 }
 
@@ -1375,7 +1377,7 @@ static void initUsbMsc() {}
 #endif
 
 // ── Public API ──────────────────────────────────────────────────────────────
-void app_http_trigger_setup(Arduino_SH8601 * /*passed_gfx*/) {
+void app_http_trigger_setup(Arduino_OLED * /*passed_gfx*/) {
     if (!expander.begin(0x20)) USBSerial.println("XCA9554 init failed");
     expander.pinMode(1, OUTPUT); expander.digitalWrite(1, LOW);
     expander.pinMode(2, OUTPUT); expander.digitalWrite(2, LOW);

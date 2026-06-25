@@ -21,5 +21,5 @@
 #pragma once
 #include "Arduino_GFX_Library.h"
 
-void app_http_trigger_setup(Arduino_SH8601 *gfx);
+void app_http_trigger_setup(Arduino_OLED *gfx);
 void app_http_trigger_loop();
