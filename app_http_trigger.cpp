@@ -26,6 +26,7 @@
 #include "pin_config.h"
 #include "HWCDC.h"
 #include <Adafruit_XCA9554.h>
+#include "hw_panel.h"   // hw_is_v2()
 #include "TouchDrvFT6X36.hpp"
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -1379,11 +1380,13 @@ static void initUsbMsc() {}
 // ── Public API ──────────────────────────────────────────────────────────────
 void app_http_trigger_setup(Arduino_OLED * /*passed_gfx*/) {
     if (!expander.begin(0x20)) USBSerial.println("XCA9554 init failed");
-    expander.pinMode(1, OUTPUT); expander.digitalWrite(1, LOW);
-    expander.pinMode(2, OUTPUT); expander.digitalWrite(2, LOW);
-    delay(20);
-    expander.digitalWrite(1, HIGH);
-    expander.digitalWrite(2, HIGH);
+    if (!hw_is_v2()) {   // V2 (CO5300): the EXIO1/2 low pulse resets/blanks the panel
+      expander.pinMode(1, OUTPUT); expander.digitalWrite(1, LOW);
+      expander.pinMode(2, OUTPUT); expander.digitalWrite(2, LOW);
+      delay(20);
+      expander.digitalWrite(1, HIGH);
+      expander.digitalWrite(2, HIGH);
+    }
 
     canvas = g_canvas;
     canvas->setRotation(0);
