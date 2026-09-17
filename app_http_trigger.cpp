@@ -23,11 +23,11 @@
 #include <Preferences.h>
 #include <ArduinoJson.h>
 #include "canvas/Arduino_Canvas.h"
-#include "pin_config.h"
+#include "board.h"
 #include "HWCDC.h"
+#if BOARD_HAS_EXPANDER
 #include <Adafruit_XCA9554.h>
-#include "hw_panel.h"   // hw_is_v2()
-#include "TouchDrvFT6X36.hpp"
+#endif
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
@@ -54,8 +54,8 @@ extern Arduino_Canvas *g_canvas;
 #define MAX_SCREENS  16
 #define MAX_ITEMS    3
 #define BOOT_BTN     0
-#define DW           368
-#define DH           448
+#define DW           LCD_WIDTH
+#define DH           LCD_HEIGHT
 
 #define COL_BG       0x0000
 #define COL_WHITE    0xFFFF
@@ -99,8 +99,13 @@ extern Arduino_Canvas *g_canvas;
 
 // ── Globals ──────────────────────────────────────────────────────────────────
 static Arduino_Canvas   *canvas = nullptr;
+#if BOARD_HAS_EXPANDER
 static Adafruit_XCA9554  expander;
-static TouchDrvFT6X36    s_touch;
+#endif
+// Built via board_make_touch() so the right driver is chosen per board
+// revision. A raw FocalTech instance talks to 0x38, which nothing answers
+// on an AMOLED-1.8 V2 (CST816 @0x15) — touch was silently dead there.
+static TouchDrvInterface *s_touch = nullptr;
 static Preferences       s_prefs;
 
 enum ScreenType { SC_NONE = 0, SC_BUTTON, SC_TOGGLE, SC_SLIDER, SC_DISPLAY };
@@ -1293,7 +1298,7 @@ static void drawScreen() {
 
 // ── Touch ───────────────────────────────────────────────────────────────────
 static bool readTouch(int16_t &tx, int16_t &ty, bool &down) {
-    bool present = s_touch.getPoint(&tx, &ty, 1);
+    bool present = s_touch && s_touch->getPoint(&tx, &ty, 1);
     if (present && tx == 0 && ty == 0) present = false;
     down = present;
     bool fresh = present && !s_touchHeld;
@@ -1379,14 +1384,18 @@ static void initUsbMsc() {}
 
 // ── Public API ──────────────────────────────────────────────────────────────
 void app_http_trigger_setup(Arduino_OLED * /*passed_gfx*/) {
+#if BOARD_HAS_EXPANDER
+    // 1.8 only. Boards without an XCA9554 drive display/touch reset from
+    // real GPIOs, handled in board_make_display()/board_make_touch().
     if (!expander.begin(0x20)) USBSerial.println("XCA9554 init failed");
-    if (!hw_is_v2()) {   // V2 (CO5300): the EXIO1/2 low pulse resets/blanks the panel
+    if (!board_amoled18_is_v2()) {   // V2 (CO5300): the EXIO1/2 low pulse resets/blanks the panel
       expander.pinMode(1, OUTPUT); expander.digitalWrite(1, LOW);
       expander.pinMode(2, OUTPUT); expander.digitalWrite(2, LOW);
       delay(20);
       expander.digitalWrite(1, HIGH);
       expander.digitalWrite(2, HIGH);
     }
+#endif  // BOARD_HAS_EXPANDER
 
     canvas = g_canvas;
     canvas->setRotation(0);
@@ -1403,10 +1412,10 @@ void app_http_trigger_setup(Arduino_OLED * /*passed_gfx*/) {
     pinMode(BOOT_BTN, INPUT_PULLUP);
     pinMode(TP_INT,   INPUT_PULLUP);
     attachInterrupt(BOOT_BTN, bootISR, FALLING);
-    s_touch.begin(Wire, 0x38, IIC_SDA, IIC_SCL);
+    s_touch = board_make_touch();
     for (int i = 0; i < 3; i++) {
         int16_t dx = 0, dy = 0;
-        s_touch.getPoint(&dx, &dy, 1);
+        if (s_touch) s_touch->getPoint(&dx, &dy, 1);
         delay(8);
     }
 

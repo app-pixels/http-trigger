@@ -18,11 +18,10 @@
 #include <FS.h>
 #include "Arduino_GFX_Library.h"
 #include "canvas/Arduino_Canvas.h"
-#include "pin_config.h"
+#include "board.h"
 #include "HWCDC.h"
 #include "XPowersLib.h"
 #include "app_common.h"
-#include "hw_panel.h"
 #include "app_http_trigger.h"
 
 
@@ -77,7 +76,7 @@ void setup() {
     SD_MMC.end();
   }
 
-  gfx = make_display(bus);
+  gfx = board_make_display(bus);
   g_canvas = new Arduino_Canvas(LCD_WIDTH, LCD_HEIGHT, gfx, 0, 0, 0);
   if (!g_canvas->begin()) USBSerial.println("g_canvas->begin() failed");
   gfx->setBrightness(g_config.brightness);

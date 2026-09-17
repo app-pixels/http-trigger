@@ -12,7 +12,7 @@
  */
 
 #include "app_common.h"
-#include "pin_config.h"
+#include "board.h"
 #include <Arduino.h>
 #include <Preferences.h>
 #include <string.h>
@@ -417,8 +417,8 @@ void draw_watermark_p(Arduino_SH8601 *gfx) {
 
 // ── Landscape HUD (448×368) ──────────────────────────────────────────────────
 
-#define L_W  448
-#define L_H  368
+#define L_W  LCD_HEIGHT   // landscape width = portrait height
+#define L_H  LCD_WIDTH
 
 void draw_battery_l(Arduino_Canvas *canvas) {
     drawBatteryAt(canvas, L_W - CORNER_R - 18, 10);
